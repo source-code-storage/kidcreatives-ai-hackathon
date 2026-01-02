@@ -14,7 +14,7 @@ This wizard will help you:
 You already have skeleton steering documents in `.kiro/steering/`. Let's fill them out with your project details.
 
 ### Gather Project Information
-**Note**: The more detailed you can be, the better! Specific information about what you're building, who it's for, and the components you want helps create better context for your coding assistant and future development work. But don't worry - you can always keep it brief if you prefer.
+**Note** (tell the user): The more detailed you can be, the better! Specific information about what you're building, who it's for, and the components you want helps create better context for your coding assistant and future development work. But don't worry - you can always keep it brief if you prefer.
 
 Ask the user these essential questions:
 
