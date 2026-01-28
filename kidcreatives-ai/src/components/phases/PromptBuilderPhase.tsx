@@ -1,0 +1,253 @@
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { ArrowRight, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Sparky } from '@/components/ui/Sparky'
+import { PromptEngine } from '@/components/ui/PromptEngine'
+import { useGeminiText } from '@/hooks/useGeminiText'
+import { usePromptState } from '@/hooks/usePromptState'
+import { selectQuestions, personalizeQuestion } from '@/lib/promptQuestions'
+import type { SocraticQuestion } from '@/types/PromptState'
+
+const MAX_ANSWER_LENGTH = 100
+
+interface PromptBuilderPhaseProps {
+  originalImage: string
+  intentStatement: string
+  visionAnalysis: string
+  onBack: () => void
+  onNext: (promptStateJSON: string) => void
+}
+
+export function PromptBuilderPhase({
+  originalImage,
+  intentStatement,
+  visionAnalysis,
+  onBack,
+  onNext
+}: PromptBuilderPhaseProps) {
+  const [questions, setQuestions] = useState<SocraticQuestion[]>([])
+  const [currentAnswer, setCurrentAnswer] = useState('')
+  const [sparkyMessage, setSparkyMessage] = useState('')
+  
+  const { question, isGenerating, generateQuestion } = useGeminiText()
+  const { promptState, addAnswer, isComplete, progress } = usePromptState(
+    originalImage,
+    intentStatement,
+    visionAnalysis,
+    4
+  )
+
+  useEffect(() => {
+    const selectedQuestions = selectQuestions(intentStatement, visionAnalysis, 4)
+    setQuestions(selectedQuestions)
+    setSparkyMessage("Let's build your AI prompt together! Answer a few fun questions about your creation.")
+  }, [intentStatement, visionAnalysis])
+
+  useEffect(() => {
+    if (questions.length > 0 && promptState.currentQuestionIndex === 0 && !question) {
+      const firstQuestion = questions[0]
+      const personalizedTemplate = personalizeQuestion(
+        firstQuestion.questionTemplate,
+        intentStatement
+      )
+      generateQuestion(
+        intentStatement,
+        visionAnalysis,
+        firstQuestion.variable,
+        personalizedTemplate,
+        firstQuestion.colorCategory
+      )
+    }
+  }, [questions, promptState.currentQuestionIndex, question, intentStatement, visionAnalysis, generateQuestion])
+
+  const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    if (value.length <= MAX_ANSWER_LENGTH) {
+      setCurrentAnswer(value)
+    }
+  }
+
+  const handleSubmitAnswer = async () => {
+    if (!currentAnswer.trim() || !question) return
+
+    addAnswer(
+      question.variable,
+      question.question,
+      currentAnswer.trim(),
+      question.colorCategory
+    )
+
+    setCurrentAnswer('')
+
+    // Calculate next index manually since addAnswer() state update is async
+    // We need the next index immediately to determine if more questions remain
+    const nextIndex = promptState.currentQuestionIndex + 1
+    if (nextIndex < questions.length) {
+      const nextQuestion = questions[nextIndex]
+      const personalizedTemplate = personalizeQuestion(
+        nextQuestion.questionTemplate,
+        intentStatement
+      )
+      
+      setSparkyMessage("Great answer! Let's keep going...")
+      
+      await generateQuestion(
+        intentStatement,
+        visionAnalysis,
+        nextQuestion.variable,
+        personalizedTemplate,
+        nextQuestion.colorCategory
+      )
+    } else {
+      setSparkyMessage("Awesome! You've built a complete AI prompt! Ready to see your creation come to life?")
+    }
+  }
+
+  const handleNext = () => {
+    onNext(JSON.stringify(promptState))
+  }
+
+  const canSubmit = currentAnswer.trim().length > 0 && !isGenerating
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Build Your AI Prompt
+          </h1>
+          <p className="text-lg text-gray-600">
+            Answer questions to teach the AI about your creation
+          </p>
+          
+          <div className="mt-4 max-w-md mx-auto">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Question {promptState.currentQuestionIndex + 1} of {promptState.totalQuestions}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <motion.div
+                className="bg-subject-blue h-2 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="space-y-6"
+          >
+            <Sparky
+              state={isGenerating ? 'thinking' : isComplete ? 'success' : 'waiting'}
+              message={sparkyMessage}
+            />
+
+            {question && !isComplete && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-lg p-6 shadow-md"
+              >
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  {question.question}
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <textarea
+                      value={currentAnswer}
+                      onChange={handleAnswerChange}
+                      placeholder="Type your answer here..."
+                      disabled={isGenerating}
+                      className={`w-full h-32 p-4 border-2 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-subject-blue transition-colors ${
+                        isGenerating
+                          ? 'bg-gray-100 border-gray-300'
+                          : 'bg-white border-gray-300 hover:border-subject-blue'
+                      }`}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm text-gray-500">
+                        {currentAnswer.length}/{MAX_ANSWER_LENGTH}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleSubmitAnswer}
+                    disabled={!canSubmit}
+                    variant="default"
+                    size="lg"
+                    className="w-full"
+                  >
+                    {isGenerating ? (
+                      'Thinking...'
+                    ) : (
+                      <>
+                        Submit Answer <ArrowRight className="ml-2 w-5 h-5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {isComplete && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-lg p-6 shadow-md text-center"
+              >
+                <h2 className="text-2xl font-bold text-action-green mb-4">
+                  🎉 Prompt Complete!
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  You've created {promptState.variables.length} AI instructions. Ready to generate your masterpiece?
+                </p>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={onBack}
+                    variant="outline"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <ArrowLeft className="mr-2 w-5 h-5" /> Back
+                  </Button>
+                  <Button
+                    onClick={handleNext}
+                    variant="default"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    Generate Image <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <PromptEngine variables={promptState.variables} />
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  )
+}

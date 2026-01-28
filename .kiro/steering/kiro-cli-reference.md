@@ -87,10 +87,10 @@ kiro-cli settings chat.defaultModel claude-sonnet-4
 - `product.md`: Product overview, goals, users
 - `tech.md`: Technology stack, frameworks, constraints
 - `structure.md`: File organization, naming conventions
+- `testing-standards.md`: Testing philosophy, agent-browser usage, test scenarios
 
 **Custom Steering Examples:**
 - `api-standards.md`: REST conventions, error formats
-- `testing-standards.md`: Unit test patterns, coverage
 - `security-policies.md`: Authentication, validation rules
 
 ### 3. Prompts System
