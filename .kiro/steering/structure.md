@@ -162,6 +162,7 @@ Reusable UI elements:
   - **tech.md**: Technology stack, architecture, MCP servers, development tools
   - **structure.md**: Directory layout, file naming conventions, module organization
   - **testing-standards.md**: Testing philosophy, agent-browser usage, test scenarios
+  - **supabase-integration.md**: Supabase MCP usage guide, migration patterns, best practices
 - **.kiro/prompts/**: Custom development prompts
 - **.kiro/settings/mcp.json**: MCP server configuration
 

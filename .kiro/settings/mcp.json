@@ -4,6 +4,9 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"],
       "env": {}
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp"
     }
   }
 }

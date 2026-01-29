@@ -13,7 +13,7 @@ interface GenerationPhaseProps {
   imageMimeType: string
   promptStateJSON: string // JSON string from Phase 2
   onBack: () => void
-  onNext: (generatedImageBase64: string) => void
+  onNext: (generatedImageBase64: string, skipRefinement?: boolean) => void
 }
 
 export function GenerationPhase({
@@ -50,7 +50,7 @@ export function GenerationPhase({
     } else if (error) {
       setSparkyMessage("Hmm, something went wrong. But don't worry, we can try again!")
     } else if (generatedImage) {
-      setSparkyMessage("Ta-da! Look at your amazing creation! See how your answers transformed your sketch?")
+      setSparkyMessage("Ta-da! Look at your amazing creation! You can finalize it now, or refine it further if you'd like!")
     }
   }, [isGenerating, error, generatedImage])
 
@@ -60,9 +60,15 @@ export function GenerationPhase({
     generate(synthesizedPrompt)
   }
 
-  const handleNext = () => {
+  const handleFinalize = () => {
     if (generatedImage) {
-      onNext(generatedImage.imageBytes)
+      onNext(generatedImage.imageBytes, true) // Skip refinement
+    }
+  }
+
+  const handleRefine = () => {
+    if (generatedImage) {
+      onNext(generatedImage.imageBytes, false) // Go to refinement
     }
   }
 
@@ -209,6 +215,7 @@ export function GenerationPhase({
           transition={{ duration: 0.5, delay: 0.8 }}
           className="flex justify-between items-center"
         >
+          {/* Back Button */}
           <Button
             onClick={onBack}
             variant="outline"
@@ -218,14 +225,27 @@ export function GenerationPhase({
             Back to Questions
           </Button>
 
-          <Button
-            onClick={handleNext}
-            disabled={!generatedImage || isGenerating}
-            className="gap-2 bg-action-green hover:bg-green-600 text-white"
-          >
-            Refine My Art
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            <Button
+              onClick={handleRefine}
+              disabled={!generatedImage || isGenerating}
+              variant="outline"
+              className="gap-2"
+            >
+              Edit/Refine
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+
+            <Button
+              onClick={handleFinalize}
+              disabled={!generatedImage || isGenerating}
+              className="gap-2 bg-action-green hover:bg-green-600 text-white"
+            >
+              Finalize & Get Trophy 🏆
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         </motion.div>
       </div>
     </div>

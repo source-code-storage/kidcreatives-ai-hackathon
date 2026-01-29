@@ -7,30 +7,6 @@ interface PromptEngineProps {
   className?: string
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    }
-  }
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -50 },
-  show: { 
-    opacity: 1, 
-    x: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 24
-    }
-  }
-}
-
 export function PromptEngine({ variables, className }: PromptEngineProps) {
   return (
     <div className={className}>
@@ -43,20 +19,24 @@ export function PromptEngine({ variables, className }: PromptEngineProps) {
         </p>
       </div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="bg-white border-2 border-gray-300 rounded-lg p-6 min-h-[200px]"
-      >
+      <div className="bg-white border-2 border-gray-300 rounded-lg p-6 min-h-[200px]">
         {variables.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-400">
             <p className="text-sm">Your code blocks will appear here...</p>
           </div>
         ) : (
-          <motion.div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3">
             {variables.map((entry) => (
-              <motion.div key={`${entry.variable}-${entry.timestamp}`} variants={itemVariants}>
+              <motion.div
+                key={`${entry.variable}-${entry.timestamp}`}
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 24
+                }}
+              >
                 <CodeBlock
                   variant={entry.colorCategory}
                   variable={entry.variable}
@@ -64,9 +44,9 @@ export function PromptEngine({ variables, className }: PromptEngineProps) {
                 />
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
       {variables.length > 0 && (
         <motion.div

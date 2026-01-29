@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
+import { Images, LogOut } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 import { HandshakePhase } from '@/components/phases/HandshakePhase'
 import { PromptBuilderPhase } from '@/components/phases/PromptBuilderPhase'
 import { GenerationPhase } from '@/components/phases/GenerationPhase'
 import { RefinementPhase } from '@/components/phases/RefinementPhase'
 import { TrophyPhase } from '@/components/phases/TrophyPhase'
+import { GalleryView, GalleryErrorBoundary } from '@/components/gallery'
+import { AuthModal } from '@/components/auth'
+import { PhaseErrorBoundary } from '@/components/shared'
+import { useAuth } from '@/contexts/AuthContext'
 import { Phase } from '@/types/PhaseTypes'
+import { useGallery } from '@/hooks/useGallery'
 
 interface PhaseData {
   originalImage: string | null
@@ -30,8 +37,23 @@ const INITIAL_PHASE_DATA: PhaseData = {
 }
 
 function App() {
+  const { user, signOut, loading: authLoading } = useAuth()
   const [currentPhase, setCurrentPhase] = useState<Phase>(Phase.Handshake)
   const [phaseData, setPhaseData] = useState<PhaseData>(INITIAL_PHASE_DATA)
+  const [showGallery, setShowGallery] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { items: galleryItems } = useGallery()
+
+  // Show auth modal if not logged in (with debounce to prevent flickering)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!authLoading && !user) {
+        setShowAuthModal(true)
+      }
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [user, authLoading])
 
   // Redirect to Handshake if Phase 2 is missing required data
   useEffect(() => {
@@ -93,12 +115,14 @@ function App() {
     setCurrentPhase(Phase.PromptBuilder)
   }
 
-  const handleGenerationComplete = (generatedImageBase64: string) => {
+  const handleGenerationComplete = (generatedImageBase64: string, skipRefinement: boolean = false) => {
     setPhaseData(prev => ({
       ...prev,
-      generatedImage: generatedImageBase64
+      generatedImage: generatedImageBase64,
+      refinedImage: skipRefinement ? generatedImageBase64 : prev.refinedImage,
+      editCount: skipRefinement ? 0 : prev.editCount
     }))
-    setCurrentPhase(Phase.Refinement)
+    setCurrentPhase(skipRefinement ? Phase.Trophy : Phase.Refinement)
   }
 
   const handleRefinementBack = () => {
@@ -126,71 +150,128 @@ function App() {
     setCurrentPhase(Phase.Handshake)
   }
 
-  switch (currentPhase) {
-    // Task 14: Add Trophy phase case
-    case Phase.Trophy:
-      if (!phaseData.originalImage || !phaseData.refinedImage || !phaseData.promptStateJSON) {
-        return null // Will redirect via useEffect
-      }
-      return (
-        <TrophyPhase
-          refinedImage={phaseData.refinedImage}
-          originalImage={phaseData.originalImage}
-          promptStateJSON={phaseData.promptStateJSON}
-          intentStatement={phaseData.intentStatement}
-          editCount={phaseData.editCount}
-          onBack={handleTrophyBack}
-          onComplete={handleTrophyComplete}
-        />
-      )
+  const renderPhase = () => {
+    switch (currentPhase) {
+      // Task 14: Add Trophy phase case
+      case Phase.Trophy:
+        if (!phaseData.originalImage || !phaseData.refinedImage || !phaseData.promptStateJSON) {
+          return null // Will redirect via useEffect
+        }
+        return (
+          <TrophyPhase
+            refinedImage={phaseData.refinedImage}
+            originalImage={phaseData.originalImage}
+            promptStateJSON={phaseData.promptStateJSON}
+            intentStatement={phaseData.intentStatement}
+            editCount={phaseData.editCount}
+            onBack={handleTrophyBack}
+            onComplete={handleTrophyComplete}
+          />
+        )
 
-    case Phase.Refinement:
-      if (!phaseData.originalImage || !phaseData.generatedImage) {
-        return null // Will redirect via useEffect
-      }
-      return (
-        <RefinementPhase
-          generatedImage={phaseData.generatedImage}
-          imageMimeType={phaseData.imageMimeType}
-          originalImage={phaseData.originalImage}
-          onBack={handleRefinementBack}
-          onNext={handleRefinementComplete}
-        />
-      )
+      case Phase.Refinement:
+        if (!phaseData.originalImage || !phaseData.generatedImage) {
+          return null // Will redirect via useEffect
+        }
+        return (
+          <RefinementPhase
+            generatedImage={phaseData.generatedImage}
+            imageMimeType={phaseData.imageMimeType}
+            originalImage={phaseData.originalImage}
+            onBack={handleRefinementBack}
+            onNext={handleRefinementComplete}
+          />
+        )
 
-    case Phase.Generation:
-      if (!phaseData.originalImage || !phaseData.promptStateJSON) {
-        // Redirect handled by useEffect
-        return null
-      }
-      return (
-        <GenerationPhase
-          originalImage={phaseData.originalImage}
-          imageMimeType={phaseData.imageMimeType}
-          promptStateJSON={phaseData.promptStateJSON}
-          onBack={handleGenerationBack}
-          onNext={handleGenerationComplete}
-        />
-      )
+      case Phase.Generation:
+        if (!phaseData.originalImage || !phaseData.promptStateJSON) {
+          // Redirect handled by useEffect
+          return null
+        }
+        return (
+          <GenerationPhase
+            originalImage={phaseData.originalImage}
+            imageMimeType={phaseData.imageMimeType}
+            promptStateJSON={phaseData.promptStateJSON}
+            onBack={handleGenerationBack}
+            onNext={handleGenerationComplete}
+          />
+        )
 
-    case Phase.PromptBuilder:
-      if (!phaseData.originalImage || !phaseData.visionAnalysis) {
-        return null // Will redirect via useEffect
-      }
-      return (
-        <PromptBuilderPhase
-          originalImage={phaseData.originalImage}
-          intentStatement={phaseData.intentStatement}
-          visionAnalysis={phaseData.visionAnalysis}
-          onBack={handlePromptBuilderBack}
-          onNext={handlePromptBuilderComplete}
-        />
-      )
-    
-    case Phase.Handshake:
-    default:
-      return <HandshakePhase onComplete={handleHandshakeComplete} />
+      case Phase.PromptBuilder:
+        if (!phaseData.originalImage || !phaseData.visionAnalysis) {
+          return null // Will redirect via useEffect
+        }
+        return (
+          <PromptBuilderPhase
+            originalImage={phaseData.originalImage}
+            intentStatement={phaseData.intentStatement}
+            visionAnalysis={phaseData.visionAnalysis}
+            onBack={handlePromptBuilderBack}
+            onNext={handlePromptBuilderComplete}
+          />
+        )
+      
+      case Phase.Handshake:
+      default:
+        return <HandshakePhase onComplete={handleHandshakeComplete} />
+    }
   }
+
+  return (
+    <>
+      {/* Logout Button */}
+      {user && (
+        <button
+          onClick={() => signOut()}
+          className="fixed top-6 left-6 z-40 p-3 bg-system-grey text-white rounded-full shadow-lg hover:bg-system-grey/90 transition-all hover:scale-110"
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <LogOut size={20} />
+        </button>
+      )}
+
+      {/* Gallery Icon Button */}
+      {user && (
+        <button
+          onClick={() => setShowGallery(true)}
+          className="fixed top-6 right-6 z-40 p-3 bg-action-green text-white rounded-full shadow-lg hover:bg-action-green/90 transition-all hover:scale-110"
+          aria-label="Open gallery"
+        >
+          <Images size={24} />
+          {galleryItems.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-subject-blue text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              {galleryItems.length > 99 ? '99+' : galleryItems.length}
+            </span>
+          )}
+        </button>
+      )}
+
+      {/* Phase Content */}
+      {user && (
+        <PhaseErrorBoundary onReset={() => setCurrentPhase(Phase.Handshake)}>
+          {renderPhase()}
+        </PhaseErrorBoundary>
+      )}
+
+      {/* Auth Modal */}
+      <AnimatePresence>
+        {showAuthModal && !user && (
+          <AuthModal onClose={() => setShowAuthModal(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Gallery Overlay */}
+      <AnimatePresence>
+        {showGallery && user && (
+          <GalleryErrorBoundary onClose={() => setShowGallery(false)}>
+            <GalleryView onClose={() => setShowGallery(false)} />
+          </GalleryErrorBoundary>
+        )}
+      </AnimatePresence>
+    </>
+  )
 }
 
 export default App

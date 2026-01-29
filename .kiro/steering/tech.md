@@ -30,6 +30,13 @@
   - Provides version-specific documentation and code examples directly from source
   - Example: "Use Context7 to get latest Supabase auth patterns" or "Check Context7 for Gemini Vision API examples"
 
+- **supabase**: Database and backend operations via OAuth-authenticated MCP
+  - **IMPORTANT**: Use Supabase MCP for all database schema, migrations, and backend operations
+  - OAuth-authenticated connection to your Supabase projects
+  - Auto-invoke for: Database schema creation, migrations, RLS policies, storage buckets, auth configuration
+  - Provides direct access to Supabase CLI operations without local setup
+  - Example: "Use Supabase MCP to create gallery_items table" or "Set up RLS policies for user data"
+
 ### Development Tools (Steering-Based)
 - **agent-browser**: Headless browser automation for AI agents
   - **INTEGRATED**: Vercel agent-browser CLI tool for automated visual testing
@@ -122,18 +129,17 @@ kiro-cli  # Use @prime to load project context
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["context7-mcp"],
-      "env": {
-        "CONTEXT7_API_KEY": "your_key"
-      }
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
     },
-    "vercel-agent-browser": {
-      "command": "npx",
-      "args": ["vercel-agent-browser"]
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp"
     }
   }
 }
 ```
+
+**Note**: Supabase MCP uses OAuth authentication. The URL-based configuration connects to Supabase's hosted MCP server, which handles authentication and provides direct access to your Supabase projects.
 
 ## Code Standards
 

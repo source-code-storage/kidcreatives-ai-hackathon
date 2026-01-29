@@ -61,6 +61,35 @@ export function PromptBuilderPhase({
     }
   }, [questions, promptState.currentQuestionIndex, question, intentStatement, visionAnalysis, generateQuestion])
 
+  // Generate next question when currentQuestionIndex changes (after answer is added)
+  useEffect(() => {
+    const currentIndex = promptState.currentQuestionIndex
+    
+    // Skip if we're on the first question (handled by initial useEffect above)
+    if (currentIndex === 0) return
+    
+    // Skip if we've completed all questions
+    if (currentIndex >= questions.length) {
+      setSparkyMessage("Awesome! You've built a complete AI prompt! Ready to see your creation come to life?")
+      return
+    }
+    
+    // Generate next question
+    const nextQuestion = questions[currentIndex]
+    const personalizedTemplate = personalizeQuestion(
+      nextQuestion.questionTemplate,
+      intentStatement
+    )
+    
+    generateQuestion(
+      intentStatement,
+      visionAnalysis,
+      nextQuestion.variable,
+      personalizedTemplate,
+      nextQuestion.colorCategory
+    )
+  }, [promptState.currentQuestionIndex, questions, intentStatement, visionAnalysis, generateQuestion, setSparkyMessage])
+
   const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
     if (value.length <= MAX_ANSWER_LENGTH) {
@@ -68,7 +97,7 @@ export function PromptBuilderPhase({
     }
   }
 
-  const handleSubmitAnswer = async () => {
+  const handleSubmitAnswer = () => {
     if (!currentAnswer.trim() || !question) return
 
     addAnswer(
@@ -79,29 +108,7 @@ export function PromptBuilderPhase({
     )
 
     setCurrentAnswer('')
-
-    // Calculate next index manually since addAnswer() state update is async
-    // We need the next index immediately to determine if more questions remain
-    const nextIndex = promptState.currentQuestionIndex + 1
-    if (nextIndex < questions.length) {
-      const nextQuestion = questions[nextIndex]
-      const personalizedTemplate = personalizeQuestion(
-        nextQuestion.questionTemplate,
-        intentStatement
-      )
-      
-      setSparkyMessage("Great answer! Let's keep going...")
-      
-      await generateQuestion(
-        intentStatement,
-        visionAnalysis,
-        nextQuestion.variable,
-        personalizedTemplate,
-        nextQuestion.colorCategory
-      )
-    } else {
-      setSparkyMessage("Awesome! You've built a complete AI prompt! Ready to see your creation come to life?")
-    }
+    setSparkyMessage("Great answer! Let's keep going...")
   }
 
   const handleNext = () => {

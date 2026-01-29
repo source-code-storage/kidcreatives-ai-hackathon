@@ -46,6 +46,15 @@ KidCreatives AI transforms AI from a "black box" into a "glass box" for children
 - **Digital Holo-Card**: 3D-tilting trading card with stats derived from `Prompt_State_JSON`
 - **Smart Sheet PDF**: CMYK-optimized printable with final image, original sketch, source code prompt, and child's name
 - **Physical Artifact**: Downloadable certificate proving prompt engineering skills
+- **Save to Gallery**: Option to save creation (image + certificate) to personal gallery
+
+### Gallery Management (Cross-Phase Feature)
+- **Personal Collection**: View all saved creations in a dedicated gallery view
+- **Creation Cards**: Each saved item displays thumbnail, creation date, and quick stats
+- **Delete Functionality**: Remove unwanted creations from gallery
+- **Quick Access**: Navigate to gallery from any phase via persistent UI element
+- **Local Storage**: Gallery persists in browser localStorage (pre-Supabase implementation)
+- **Re-download**: Access saved certificates and images for re-download
 
 ## Business Objectives
 
@@ -81,7 +90,14 @@ KidCreatives AI transforms AI from a "black box" into a "glass box" for children
 6. **Refine**: Child requests changes ("Add a planet in the background")
    - AI makes localized edits without regenerating entire image
 7. **Trophy**: Child finalizes and receives digital holo-card
-8. **Print**: Child downloads printable certificate with "source code"
+8. **Save**: Child saves creation to personal gallery
+9. **Print**: Child downloads printable certificate with "source code"
+
+### Gallery Experience
+1. **Access**: Click gallery icon from any phase
+2. **Browse**: View all saved creations as cards with thumbnails
+3. **Interact**: Click creation to view full details and re-download
+4. **Manage**: Delete unwanted creations to keep gallery curated
 
 ### Exit Point
 - Child has digital trophy in app

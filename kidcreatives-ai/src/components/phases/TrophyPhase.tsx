@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Download, RotateCcw, ArrowLeft } from 'lucide-react'
+import { Download, RotateCcw, ArrowLeft, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sparky } from '@/components/ui/Sparky'
 import { HoloCard } from '@/components/ui/HoloCard'
 import { extractStats } from '@/lib/statsExtractor'
 import { generateCertificatePDF, downloadPDF } from '@/lib/pdfGenerator'
+import { generateThumbnail } from '@/lib/thumbnailGenerator'
+import { useGallery } from '@/hooks/useGallery'
 import type { PromptStateJSON } from '@/types/PromptState'
 import type { HoloCardData } from '@/types/TrophyTypes'
 
@@ -37,6 +39,12 @@ export function TrophyPhase({
   const [pdfError, setPdfError] = useState<string | null>(null)
   const [nameError, setNameError] = useState<string | null>(null)
   const [sparkyMessage, setSparkyMessage] = useState('')
+  const [isSavingToGallery, setIsSavingToGallery] = useState(false)
+  const [savedToGallery, setSavedToGallery] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [generatedPDFBase64, setGeneratedPDFBase64] = useState<string | null>(null)
+
+  const { addToGallery } = useGallery()
 
   // Parse prompt state and extract stats
   const { stats, holoCardData } = useMemo(() => {
@@ -131,6 +139,15 @@ export function TrophyPhase({
         stats
       })
 
+      // Convert blob to base64 for storage (await the FileReader operation)
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(pdfBlob)
+      })
+      setGeneratedPDFBase64(base64)
+
       const filename = `kidcreatives-certificate-${Date.now()}.pdf`
       downloadPDF(pdfBlob, filename)
 
@@ -145,6 +162,70 @@ export function TrophyPhase({
       )
     } finally {
       setIsGeneratingPDF(false)
+    }
+  }
+
+  const handleSaveToGallery = async () => {
+    if (!stats) {
+      setSaveError('Unable to save: missing stats data')
+      return
+    }
+
+    setIsSavingToGallery(true)
+    setSaveError(null)
+
+    try {
+      // Generate thumbnail
+      const thumbnail = await generateThumbnail(refinedImage, 300)
+
+      // Generate PDF if not already generated
+      let pdfBase64 = generatedPDFBase64
+      if (!pdfBase64) {
+        const promptState: PromptStateJSON = JSON.parse(promptStateJSON)
+        const synthesizedPrompt = promptState.synthesizedPrompt || intentStatement
+
+        const pdfBlob = await generateCertificatePDF({
+          childName: childName || 'Young Creator',
+          creationDate: new Date(),
+          finalImage: refinedImage,
+          originalImage,
+          synthesizedPrompt,
+          stats
+        })
+
+        // Convert blob to base64
+        const reader = new FileReader()
+        pdfBase64 = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(pdfBlob)
+        })
+        setGeneratedPDFBase64(pdfBase64)
+      }
+
+      // Save to gallery
+      addToGallery({
+        refinedImage,
+        originalImage,
+        promptStateJSON,
+        intentStatement,
+        stats,
+        certificatePDF: pdfBase64,
+        thumbnail
+      })
+
+      setSavedToGallery(true)
+      setSparkyMessage(
+        "🎉 Saved to your gallery! You can view it anytime by clicking the gallery icon."
+      )
+    } catch (error) {
+      console.error('Save to gallery error:', error)
+      setSaveError(error instanceof Error ? error.message : 'Failed to save to gallery')
+      setSparkyMessage(
+        "Oops! Couldn't save to gallery. But you can still download your certificate!"
+      )
+    } finally {
+      setIsSavingToGallery(false)
     }
   }
 
@@ -261,11 +342,12 @@ export function TrophyPhase({
                 Print it out and show everyone your prompt engineering skills!
               </p>
               
-              <div className="flex justify-center">
+              <div className="flex flex-col gap-3">
+                {/* Download Certificate Button */}
                 <Button
                   onClick={handleDownloadPDF}
                   disabled={isGeneratingPDF}
-                  className="gap-2 bg-subject-blue hover:bg-blue-600 text-white text-lg px-8 py-6"
+                  className="gap-2 bg-subject-blue hover:bg-blue-600 text-white text-lg px-8 py-4"
                 >
                   {isGeneratingPDF ? (
                     <>
@@ -279,6 +361,30 @@ export function TrophyPhase({
                     </>
                   )}
                 </Button>
+
+                {/* Save to Gallery Button */}
+                <Button
+                  onClick={handleSaveToGallery}
+                  disabled={isSavingToGallery || savedToGallery}
+                  className="gap-2 bg-action-green hover:bg-green-600 text-white text-lg px-8 py-4 disabled:bg-gray-400"
+                >
+                  {isSavingToGallery ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                      Saving...
+                    </>
+                  ) : savedToGallery ? (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Saved to Gallery ✓
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save to Gallery
+                    </>
+                  )}
+                </Button>
               </div>
 
               {pdfError && (
@@ -288,6 +394,16 @@ export function TrophyPhase({
                   className="bg-red-50 border border-red-200 rounded-lg p-4"
                 >
                   <p className="text-red-600 text-sm text-center">{pdfError}</p>
+                </motion.div>
+              )}
+
+              {saveError && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="bg-red-50 border border-red-200 rounded-lg p-4"
+                >
+                  <p className="text-red-600 text-sm text-center">{saveError}</p>
                 </motion.div>
               )}
             </div>
