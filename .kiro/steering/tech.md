@@ -29,11 +29,14 @@
   - Auto-invoke for: React, TypeScript, Supabase, Gemini AI, Framer Motion, TailwindCSS
   - Provides version-specific documentation and code examples directly from source
   - Example: "Use Context7 to get latest Supabase auth patterns" or "Check Context7 for Gemini Vision API examples"
+
+### Development Tools (Steering-Based)
 - **agent-browser**: Headless browser automation for AI agents
-  - **INTEGRATED**: Vercel agent-browser MCP server for automated visual testing
+  - **INTEGRATED**: Vercel agent-browser CLI tool for automated visual testing
   - Fast Rust CLI with Node.js fallback
   - Chromium-based browser automation for testing Phase transitions and UI interactions
-  - Use for: Automated testing of Phase 1→2→3 workflows, animation verification, responsive design testing
+  - Configured as steering file in `.kiro/steering/agent-browser.md`
+  - Use bash tool with `agent-browser` commands for testing workflows
   - Example: "Use agent-browser to test the complete Q&A flow" or "Verify code block animations in Phase 2"
 
 ### Build & Deployment

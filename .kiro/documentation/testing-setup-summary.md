@@ -6,7 +6,7 @@ Vercel agent-browser is now fully configured for automated testing of KidCreativ
 ## Installation Status
 ✅ **agent-browser v0.8.4** - Installed globally  
 ✅ **Chromium** - Downloaded and ready  
-✅ **MCP Integration** - Configured in `.kiro/settings/mcp.json`  
+✅ **Steering Integration** - Configured in `.kiro/steering/agent-browser.md`  
 ✅ **Testing Standards** - Documented in `.kiro/steering/testing-standards.md`
 
 ## What Was Done
@@ -33,7 +33,7 @@ Vercel agent-browser is now fully configured for automated testing of KidCreativ
 - Test data (sample images and inputs)
 - agent-browser best practices (refs, snapshots, waits)
 - Debugging tests (visual, console, trace recording)
-- Integration with Kiro CLI (MCP usage)
+- Integration with Kiro CLI (steering-based usage via bash tool)
 - Test documentation (reports, screenshots)
 - Performance testing (load time, animations, bundle size)
 - Accessibility testing (keyboard nav, screen reader, color contrast)

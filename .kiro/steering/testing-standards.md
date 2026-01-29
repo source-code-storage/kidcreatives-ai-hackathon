@@ -21,7 +21,8 @@ KidCreatives AI prioritizes **user experience validation** over unit test covera
 - Chromium-based browser automation
 - Accessibility tree snapshots with refs
 - Perfect for testing React animations and phase transitions
-- Integrated with Kiro CLI via MCP server
+- Integrated with Kiro CLI via steering file (`.kiro/steering/agent-browser.md`)
+- Use bash tool to execute `agent-browser` commands directly
 
 ### Secondary: Manual Testing
 **Purpose**: UX validation with target age group  
@@ -294,24 +295,26 @@ agent-browser trace stop test-trace.zip
 
 ## Integration with Kiro CLI
 
-### MCP Server Configuration
-Already configured in `.kiro/settings/mcp.json`:
-```json
-{
-  "agent-browser": {
-    "command": "agent-browser",
-    "args": ["mcp"],
-    "env": {}
-  }
-}
+### Steering File Configuration
+agent-browser is integrated via steering file in `.kiro/steering/agent-browser.md`:
+```markdown
+---
+name: agent-browser
+description: Automates browser interactions for web testing, form filling, screenshots, and data extraction.
+allowed-tools: Bash(agent-browser:*)
+---
 ```
 
-### Using with Kiro Prompts
+### Using with Kiro CLI
 ```bash
-# In Kiro CLI chat
+# In Kiro CLI chat, use bash tool to execute agent-browser commands
 > Use agent-browser to test Phase 1 handshake flow
 
-# Kiro will automatically invoke agent-browser via MCP
+# Kiro will automatically invoke agent-browser via bash tool
+# Example commands:
+agent-browser open http://localhost:5173
+agent-browser snapshot -i
+agent-browser click @e1
 ```
 
 ## Test Documentation
