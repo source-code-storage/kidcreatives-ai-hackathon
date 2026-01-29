@@ -171,40 +171,62 @@ export function TrophyPhase({
       return
     }
 
+    // Validate required data before attempting save
+    if (!refinedImage || !originalImage) {
+      setSaveError('Unable to save: missing image data')
+      setSparkyMessage("Oops! Some images are missing. Try generating your artwork again.")
+      return
+    }
+
+    if (!promptStateJSON) {
+      setSaveError('Unable to save: missing prompt data')
+      setSparkyMessage("Oops! Prompt data is missing. Try going back to Phase 2.")
+      return
+    }
+
     setIsSavingToGallery(true)
     setSaveError(null)
+    setSparkyMessage("Preparing your artwork for the gallery...")
 
     try {
-      // Generate thumbnail
-      const thumbnail = await generateThumbnail(refinedImage, 300)
-
-      // Generate PDF if not already generated
-      let pdfBase64 = generatedPDFBase64
-      if (!pdfBase64) {
+      // Generate thumbnail and PDF in parallel if needed
+      const thumbnailPromise = generateThumbnail(refinedImage, 300)
+      
+      let pdfPromise: Promise<string>
+      if (generatedPDFBase64) {
+        pdfPromise = Promise.resolve(generatedPDFBase64)
+      } else {
+        setSparkyMessage("Creating your certificate...")
         const promptState: PromptStateJSON = JSON.parse(promptStateJSON)
         const synthesizedPrompt = promptState.synthesizedPrompt || intentStatement
 
-        const pdfBlob = await generateCertificatePDF({
+        pdfPromise = generateCertificatePDF({
           childName: childName || 'Young Creator',
           creationDate: new Date(),
           finalImage: refinedImage,
           originalImage,
           synthesizedPrompt,
           stats
+        }).then(pdfBlob => {
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(pdfBlob)
+          })
+        }).then(pdfBase64 => {
+          setGeneratedPDFBase64(pdfBase64)
+          return pdfBase64
         })
-
-        // Convert blob to base64
-        const reader = new FileReader()
-        pdfBase64 = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result as string)
-          reader.onerror = reject
-          reader.readAsDataURL(pdfBlob)
-        })
-        setGeneratedPDFBase64(pdfBase64)
       }
 
+      // Wait for both thumbnail and PDF
+      const [thumbnail, pdfBase64] = await Promise.all([thumbnailPromise, pdfPromise])
+
+      setSparkyMessage("Uploading to your gallery...")
+
       // Save to gallery
-      addToGallery({
+      await addToGallery({
         refinedImage,
         originalImage,
         promptStateJSON,
@@ -220,10 +242,19 @@ export function TrophyPhase({
       )
     } catch (error) {
       console.error('Save to gallery error:', error)
-      setSaveError(error instanceof Error ? error.message : 'Failed to save to gallery')
-      setSparkyMessage(
-        "Oops! Couldn't save to gallery. But you can still download your certificate!"
-      )
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save to gallery'
+      
+      // Provide user-friendly error messages
+      if (errorMessage.includes('Bucket not found')) {
+        setSaveError('Storage not configured. Please contact support.')
+        setSparkyMessage("Oops! The storage system isn't set up yet. You can still download your certificate!")
+      } else if (errorMessage.includes('Base64') || errorMessage.includes('Invalid')) {
+        setSaveError('Invalid image data. Try regenerating your artwork.')
+        setSparkyMessage("Oops! Something went wrong with the image. Try creating a new artwork!")
+      } else {
+        setSaveError(errorMessage)
+        setSparkyMessage("Oops! Couldn't save to gallery. But you can still download your certificate!")
+      }
     } finally {
       setIsSavingToGallery(false)
     }

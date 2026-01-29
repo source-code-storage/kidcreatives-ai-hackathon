@@ -106,11 +106,11 @@ export async function generateCertificatePDF(options: PDFOptions): Promise<Blob>
   const statsY = 175
   const lineHeight = 7
 
-  pdf.text(`✓ Questions Answered: ${stats.totalQuestions}`, 25, statsY)
-  pdf.text(`✓ Refinements Made: ${stats.totalEdits}`, 25, statsY + lineHeight)
-  pdf.text(`✓ Time Spent: ${formatTimeSpent(stats.timeSpent)}`, 25, statsY + lineHeight * 2)
-  pdf.text(`✓ Creativity Score: ${stats.creativityScore}/100`, 25, statsY + lineHeight * 3)
-  pdf.text(`✓ Prompt Length: ${stats.promptLength} characters`, 25, statsY + lineHeight * 4)
+  pdf.text(`- Questions Answered: ${stats.totalQuestions}`, 25, statsY)
+  pdf.text(`- Refinements Made: ${stats.totalEdits}`, 25, statsY + lineHeight)
+  pdf.text(`- Time Spent: ${formatTimeSpent(stats.timeSpent)}`, 25, statsY + lineHeight * 2)
+  pdf.text(`- Creativity Score: ${stats.creativityScore}/100`, 25, statsY + lineHeight * 3)
+  pdf.text(`- Prompt Length: ${stats.promptLength} characters`, 25, statsY + lineHeight * 4)
 
   // Prompt "Source Code" section
   pdf.setFontSize(12)
