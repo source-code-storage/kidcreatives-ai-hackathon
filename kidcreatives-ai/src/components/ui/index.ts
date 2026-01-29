@@ -1,4 +1,6 @@
 export { Button, buttonVariants } from './button'
 export { CodeBlock, codeBlockVariants } from './CodeBlock'
-export { Sparky } from './Sparky'
+export { EditHistory } from './EditHistory'
+export { ImageComparison } from './ImageComparison'
 export { PromptEngine } from './PromptEngine'
+export { Sparky } from './Sparky'

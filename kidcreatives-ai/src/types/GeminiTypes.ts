@@ -55,6 +55,27 @@ export interface ImageGenerationResult {
   prompt: string // The synthesized prompt used
 }
 
+/**
+ * Result from Gemini image editing operation
+ */
+export interface ImageEditResult {
+  imageBytes: string // base64 encoded PNG
+  mimeType: string // 'image/png'
+  editPrompt: string // The edit instruction used
+  originalImage: string // base64 of image that was edited
+}
+
+/**
+ * Edit history entry for tracking refinement iterations
+ */
+export interface EditHistoryEntry {
+  id: string // unique identifier
+  editPrompt: string // what the child asked for
+  resultImage: string // base64 of edited image
+  timestamp: number // when edit was made
+  sparkyResponse: string // Sparky's comment on the edit
+}
+
 // Error response from Imagen API
 export interface ImageGenerationError {
   error: {

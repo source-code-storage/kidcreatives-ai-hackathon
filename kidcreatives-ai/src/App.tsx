@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { HandshakePhase } from '@/components/phases/HandshakePhase'
 import { PromptBuilderPhase } from '@/components/phases/PromptBuilderPhase'
 import { GenerationPhase } from '@/components/phases/GenerationPhase'
+import { RefinementPhase } from '@/components/phases/RefinementPhase'
 import { Phase } from '@/types/PhaseTypes'
 
 interface PhaseData {
@@ -11,6 +12,7 @@ interface PhaseData {
   visionAnalysis: string | null
   promptStateJSON: string | null
   generatedImage: string | null
+  refinedImage: string | null
 }
 
 function App() {
@@ -21,7 +23,8 @@ function App() {
     intentStatement: '',
     visionAnalysis: null,
     promptStateJSON: null,
-    generatedImage: null
+    generatedImage: null,
+    refinedImage: null
   })
 
   // Redirect to Handshake if Phase 2 is missing required data
@@ -37,6 +40,13 @@ function App() {
       setCurrentPhase(Phase.Handshake)
     }
   }, [currentPhase, phaseData.originalImage, phaseData.promptStateJSON])
+
+  // Redirect to Handshake if Phase 4 is missing required data
+  useEffect(() => {
+    if (currentPhase === Phase.Refinement && (!phaseData.originalImage || !phaseData.generatedImage)) {
+      setCurrentPhase(Phase.Handshake)
+    }
+  }, [currentPhase, phaseData.originalImage, phaseData.generatedImage])
 
   const handleHandshakeComplete = (
     image: string,
@@ -75,13 +85,36 @@ function App() {
       ...prev,
       generatedImage: generatedImageBase64
     }))
-    // TODO: Transition to Phase.Refinement when implemented
-    if (import.meta.env.DEV) {
-      console.log('Phase 3 complete! Generated image:', generatedImageBase64.substring(0, 50) + '...')
-    }
+    setCurrentPhase(Phase.Refinement)
+  }
+
+  const handleRefinementBack = () => {
+    setCurrentPhase(Phase.Generation)
+  }
+
+  const handleRefinementComplete = (refinedImageBase64: string) => {
+    setPhaseData(prev => ({
+      ...prev,
+      refinedImage: refinedImageBase64
+    }))
+    setCurrentPhase(Phase.Trophy)
   }
 
   switch (currentPhase) {
+    case Phase.Refinement:
+      if (!phaseData.originalImage || !phaseData.generatedImage) {
+        return null // Will redirect via useEffect
+      }
+      return (
+        <RefinementPhase
+          generatedImage={phaseData.generatedImage}
+          imageMimeType={phaseData.imageMimeType}
+          originalImage={phaseData.originalImage}
+          onBack={handleRefinementBack}
+          onNext={handleRefinementComplete}
+        />
+      )
+
     case Phase.Generation:
       if (!phaseData.originalImage || !phaseData.promptStateJSON) {
         // Redirect handled by useEffect
