@@ -139,7 +139,7 @@ export function RefinementPhase({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white rounded-lg shadow-lg p-6 mb-8"
+          className="bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 p-6 mb-8"
         >
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             What would you like to change?
@@ -188,7 +188,7 @@ export function RefinementPhase({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="bg-white rounded-lg shadow-lg p-6 mb-8"
+            className="bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 p-6 mb-8"
           >
             <EditHistory history={editHistory} />
           </motion.div>

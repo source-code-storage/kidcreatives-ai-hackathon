@@ -148,7 +148,7 @@ export function HandshakePhase({ onComplete }: HandshakePhaseProps = {}) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mt-8 p-6 bg-white rounded-lg shadow-lg border-2 border-subject-blue"
+            className="mt-8 p-6 bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20"
           >
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">

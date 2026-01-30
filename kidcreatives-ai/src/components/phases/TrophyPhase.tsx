@@ -9,6 +9,7 @@ import { generateCertificatePDF, downloadPDF } from '@/lib/pdfGenerator'
 import { generateThumbnail } from '@/lib/thumbnailGenerator'
 import { captureElementAsPNG } from '@/lib/cardCapture'
 import { useGallery } from '@/hooks/useGallery'
+import { useConfetti } from '@/hooks/useConfetti'
 import type { PromptStateJSON } from '@/types/PromptState'
 import type { HoloCardData } from '@/types/TrophyTypes'
 
@@ -45,6 +46,7 @@ export function TrophyPhase({
   const [saveError, setSaveError] = useState<string | null>(null)
   const [generatedPDFBase64, setGeneratedPDFBase64] = useState<string | null>(null)
   const [isCapturingCard, setIsCapturingCard] = useState(false)
+  const { celebrateTrophy } = useConfetti()
 
   const holoCardRef = useRef<HTMLDivElement>(null)
   const { addToGallery } = useGallery()
@@ -84,12 +86,13 @@ export function TrophyPhase({
     }
   }, [promptStateJSON, refinedImage, intentStatement, editCount])
 
-  // Initialize Sparky message
+  // Initialize Sparky message and trigger confetti
   useEffect(() => {
     setSparkyMessage(
       "🎉 Amazing work! You're officially a Prompt Engineer! Look at your awesome trophy card!"
     )
-  }, [])
+    celebrateTrophy()
+  }, [celebrateTrophy])
 
   const handleNameSubmit = () => {
     const trimmedName = childName.trim()
@@ -364,7 +367,7 @@ export function TrophyPhase({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-white rounded-lg shadow-lg p-6 mb-8"
+          className="bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 p-6 mb-8"
         >
           {showNameInput ? (
             <div className="space-y-4">

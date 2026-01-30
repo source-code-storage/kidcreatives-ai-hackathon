@@ -115,12 +115,12 @@ export function GenerationPhase({
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-white rounded-lg shadow-lg p-6"
+            className="bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 p-6"
           >
             <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
               Your Original Sketch
             </h2>
-            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            <div className="aspect-square bg-white/50 backdrop-blur-sm rounded-lg overflow-hidden">
               <img
                 src={originalImageDataURL}
                 alt="Original sketch"
@@ -134,7 +134,7 @@ export function GenerationPhase({
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="bg-white rounded-lg shadow-lg p-6"
+            className="bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 p-6"
           >
             <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
               AI-Enhanced Version
@@ -197,7 +197,7 @@ export function GenerationPhase({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="bg-white rounded-lg shadow-lg p-6 mb-8"
+            className="bg-white/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 p-6 mb-8"
           >
             <h3 className="text-xl font-semibold text-gray-800 mb-3">
               Your AI Prompt (The Instructions You Created):

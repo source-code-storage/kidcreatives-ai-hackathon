@@ -35,11 +35,11 @@ export function GalleryCard({ item, onDelete, onViewDetails }: GalleryCardProps)
       onClick={() => onViewDetails(item)}
     >
       {/* Thumbnail */}
-      <div className="relative aspect-square bg-system-grey/10">
+      <div className="relative min-h-[200px] bg-system-grey/10">
         <img
           src={item.thumbnail}
           alt={item.intentStatement}
-          className="w-full h-full object-cover"
+          className="w-full min-h-[200px] object-cover"
         />
       </div>
 

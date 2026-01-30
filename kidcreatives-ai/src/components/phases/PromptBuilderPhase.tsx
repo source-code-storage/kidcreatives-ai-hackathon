@@ -6,6 +6,7 @@ import { Sparky } from '@/components/ui/Sparky'
 import { PromptEngine } from '@/components/ui/PromptEngine'
 import { useGeminiText } from '@/hooks/useGeminiText'
 import { usePromptState } from '@/hooks/usePromptState'
+import { useConfetti } from '@/hooks/useConfetti'
 import { selectQuestions, personalizeQuestion } from '@/lib/promptQuestions'
 import type { SocraticQuestion } from '@/types/PromptState'
 
@@ -28,6 +29,7 @@ export function PromptBuilderPhase({
 }: PromptBuilderPhaseProps) {
   const [questions, setQuestions] = useState<SocraticQuestion[]>([])
   const [currentAnswer, setCurrentAnswer] = useState('')
+  const { celebratePhaseCompletion } = useConfetti()
   const [sparkyMessage, setSparkyMessage] = useState('')
   
   const { question, isGenerating, generateQuestion } = useGeminiText()
@@ -112,6 +114,7 @@ export function PromptBuilderPhase({
   }
 
   const handleNext = () => {
+    celebratePhaseCompletion()
     onNext(JSON.stringify(promptState))
   }
 
@@ -166,7 +169,7 @@ export function PromptBuilderPhase({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white rounded-lg p-6 shadow-md"
+                className="bg-white/80 backdrop-blur-md rounded-lg p-6 shadow-xl border border-white/20"
               >
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
                   {question.question}
@@ -216,7 +219,7 @@ export function PromptBuilderPhase({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white rounded-lg p-6 shadow-md text-center"
+                className="bg-white/80 backdrop-blur-md rounded-lg p-6 shadow-xl border border-white/20 text-center"
               >
                 <h2 className="text-2xl font-bold text-action-green mb-4">
                   🎉 Prompt Complete!

@@ -68,3 +68,25 @@
 .animate-shine {
   animation: shine 3s ease-in-out infinite;
 }
+
+/* Ripple Effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-animation 600ms ease-out;
+  pointer-events: none;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Scoped button styles for ripple effect - only applies to ripple-enabled buttons */
+button.ripple-enabled {
+  position: relative;
+  overflow: hidden;
+}

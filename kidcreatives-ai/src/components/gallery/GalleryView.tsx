@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Masonry from 'react-masonry-css'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Award } from 'lucide-react'
 import { useGallery } from '@/hooks/useGallery'
@@ -44,7 +45,6 @@ export function GalleryView({ onClose }: GalleryViewProps) {
   }
 
   const downloadFile = (urlOrBase64: string, filename: string, errorPrefix: string) => {
-    // Convert URL/base64 to blob to force download instead of opening
     fetch(urlOrBase64)
       .then(response => response.blob())
       .then(blob => {
@@ -62,13 +62,20 @@ export function GalleryView({ onClose }: GalleryViewProps) {
       })
       .catch(error => {
         console.error(`${errorPrefix} download failed:`, error)
+        alert(`Failed to download ${errorPrefix.toLowerCase()}. Please try again.`)
+        
         // Fallback: try direct download
-        const link = document.createElement('a')
-        link.href = urlOrBase64
-        link.download = filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        try {
+          const link = document.createElement('a')
+          link.href = urlOrBase64
+          link.download = filename
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        } catch (fallbackError) {
+          console.error('Fallback download also failed:', fallbackError)
+          alert('Download failed. Please check your browser settings and try again.')
+        }
       })
   }
 
@@ -115,27 +122,27 @@ export function GalleryView({ onClose }: GalleryViewProps) {
           <EmptyGalleryState onCreateNow={onClose} />
         ) : (
           <div className="p-6">
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                visible: {
-                  transition: {
-                    staggerChildren: 0.1
-                  }
-                }
-              }}
+            <Masonry
+              breakpointCols={{ default: 3, 1024: 3, 768: 2, 640: 1 }}
+              className="flex -ml-6 w-auto"
+              columnClassName="pl-6 bg-clip-padding"
             >
-              {items.map((item) => (
-                <GalleryCard
+              {items.map((item, index) => (
+                <motion.div
                   key={item.id}
-                  item={item}
-                  onDelete={handleDelete}
-                  onViewDetails={setSelectedItem}
-                />
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(index * 0.1, 2) }}
+                  className="mb-6"
+                >
+                  <GalleryCard
+                    item={item}
+                    onDelete={handleDelete}
+                    onViewDetails={setSelectedItem}
+                  />
+                </motion.div>
               ))}
-            </motion.div>
+            </Masonry>
           </div>
         )}
       </div>
