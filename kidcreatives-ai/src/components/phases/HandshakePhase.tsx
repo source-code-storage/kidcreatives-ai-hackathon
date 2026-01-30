@@ -47,7 +47,7 @@ export function HandshakePhase({ onComplete }: HandshakePhaseProps = {}) {
   const canAnalyze = uploadedImage && intentStatement.trim().length > 0 && !isAnalyzing
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div

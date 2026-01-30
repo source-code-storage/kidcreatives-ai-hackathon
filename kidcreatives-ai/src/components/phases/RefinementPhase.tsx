@@ -98,7 +98,7 @@ export function RefinementPhase({
   const canSubmitEdit = editPrompt.trim().length > 0 && !isEditing
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div

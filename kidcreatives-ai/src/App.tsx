@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Images, LogOut } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 import { HandshakePhase } from '@/components/phases/HandshakePhase'
 import { PromptBuilderPhase } from '@/components/phases/PromptBuilderPhase'
@@ -9,9 +8,9 @@ import { TrophyPhase } from '@/components/phases/TrophyPhase'
 import { GalleryView, GalleryErrorBoundary } from '@/components/gallery'
 import { AuthModal } from '@/components/auth'
 import { PhaseErrorBoundary } from '@/components/shared'
+import { NavigationBar, GradientBackground } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { Phase } from '@/types/PhaseTypes'
-import { useGallery } from '@/hooks/useGallery'
 
 interface PhaseData {
   originalImage: string | null
@@ -42,7 +41,6 @@ function App() {
   const [phaseData, setPhaseData] = useState<PhaseData>(INITIAL_PHASE_DATA)
   const [showGallery, setShowGallery] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const { items: galleryItems } = useGallery()
 
   // Show auth modal if not logged in (with debounce to prevent flickering)
   useEffect(() => {
@@ -219,58 +217,43 @@ function App() {
   }
 
   return (
-    <>
-      {/* Logout Button */}
-      {user && (
-        <button
-          onClick={() => signOut()}
-          className="fixed top-6 left-6 z-40 p-3 bg-system-grey text-white rounded-full shadow-lg hover:bg-system-grey/90 transition-all hover:scale-110"
-          aria-label="Sign out"
-          title="Sign out"
-        >
-          <LogOut size={20} />
-        </button>
+    <GradientBackground variant="mesh-1">
+      {/* Navigation Bar */}
+      {user && !showGallery && (
+        <NavigationBar
+          currentPhase={currentPhase}
+          onGalleryClick={() => setShowGallery(true)}
+          onLogout={signOut}
+          userName={user.email?.split('@')[0]}
+        />
       )}
 
-      {/* Gallery Icon Button */}
-      {user && (
-        <button
-          onClick={() => setShowGallery(true)}
-          className="fixed top-6 right-6 z-40 p-3 bg-action-green text-white rounded-full shadow-lg hover:bg-action-green/90 transition-all hover:scale-110"
-          aria-label="Open gallery"
-        >
-          <Images size={24} />
-          {galleryItems.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-subject-blue text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-              {galleryItems.length > 99 ? '99+' : galleryItems.length}
-            </span>
+      {/* Main Content - add pt-24 for nav bar spacing */}
+      <div className={user && !showGallery ? 'pt-24' : ''}>
+        {/* Phase Content */}
+        {user && !showGallery && (
+          <PhaseErrorBoundary onReset={() => setCurrentPhase(Phase.Handshake)}>
+            {renderPhase()}
+          </PhaseErrorBoundary>
+        )}
+
+        {/* Auth Modal */}
+        <AnimatePresence>
+          {showAuthModal && !user && (
+            <AuthModal onClose={() => setShowAuthModal(false)} />
           )}
-        </button>
-      )}
+        </AnimatePresence>
 
-      {/* Phase Content */}
-      {user && (
-        <PhaseErrorBoundary onReset={() => setCurrentPhase(Phase.Handshake)}>
-          {renderPhase()}
-        </PhaseErrorBoundary>
-      )}
-
-      {/* Auth Modal */}
-      <AnimatePresence>
-        {showAuthModal && !user && (
-          <AuthModal onClose={() => setShowAuthModal(false)} />
-        )}
-      </AnimatePresence>
-
-      {/* Gallery Overlay */}
-      <AnimatePresence>
-        {showGallery && user && (
-          <GalleryErrorBoundary onClose={() => setShowGallery(false)}>
-            <GalleryView onClose={() => setShowGallery(false)} />
-          </GalleryErrorBoundary>
-        )}
-      </AnimatePresence>
-    </>
+        {/* Gallery Overlay */}
+        <AnimatePresence>
+          {showGallery && user && (
+            <GalleryErrorBoundary onClose={() => setShowGallery(false)}>
+              <GalleryView onClose={() => setShowGallery(false)} />
+            </GalleryErrorBoundary>
+          )}
+        </AnimatePresence>
+      </div>
+    </GradientBackground>
   )
 }
 

@@ -310,7 +310,7 @@ export function TrophyPhase({
 
   if (!holoCardData || !stats) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 p-8 flex items-center justify-center">
+      <div className="min-h-screen p-8 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">Unable to load trophy data</p>
           <Button onClick={onBack} variant="outline">
@@ -323,7 +323,7 @@ export function TrophyPhase({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div

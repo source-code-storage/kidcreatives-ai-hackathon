@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Award } from 'lucide-react'
 import { useGallery } from '@/hooks/useGallery'
+import { GradientBackground } from '@/components/ui'
 import { GalleryHeader } from './GalleryHeader'
 import { GalleryCard } from './GalleryCard'
 import { EmptyGalleryState } from './EmptyGalleryState'
@@ -90,12 +91,13 @@ export function GalleryView({ onClose }: GalleryViewProps) {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-white z-50 overflow-hidden flex flex-col"
-    >
+    <GradientBackground variant="mesh-2">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[60] overflow-hidden flex flex-col"
+      >
       {/* Header */}
       <GalleryHeader itemCount={items.length} onClose={onClose} />
 
@@ -268,5 +270,6 @@ export function GalleryView({ onClose }: GalleryViewProps) {
         )}
       </AnimatePresence>
     </motion.div>
+    </GradientBackground>
   )
 }
