@@ -43,21 +43,61 @@ export function GalleryView({ onClose }: GalleryViewProps) {
   }
 
   const downloadImage = (base64: string, filename: string) => {
-    const link = document.createElement('a')
-    link.href = base64
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Convert base64 to blob to force download instead of opening
+    fetch(base64)
+      .then(response => response.blob())
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob)
+        try {
+          const link = document.createElement('a')
+          link.href = blobUrl
+          link.download = filename
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        } finally {
+          URL.revokeObjectURL(blobUrl)
+        }
+      })
+      .catch(error => {
+        console.error('Image download failed:', error)
+        // Fallback: try direct download
+        const link = document.createElement('a')
+        link.href = base64
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
   }
 
   const downloadPDF = (base64PDF: string, filename: string) => {
-    const link = document.createElement('a')
-    link.href = base64PDF
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Convert base64 to blob to force download instead of opening
+    fetch(base64PDF)
+      .then(response => response.blob())
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob)
+        try {
+          const link = document.createElement('a')
+          link.href = blobUrl
+          link.download = filename
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        } finally {
+          URL.revokeObjectURL(blobUrl)
+        }
+      })
+      .catch(error => {
+        console.error('PDF download failed:', error)
+        // Fallback: try direct download
+        const link = document.createElement('a')
+        link.href = base64PDF
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
   }
 
   const downloadPromptCard = (url: string, filename: string) => {
