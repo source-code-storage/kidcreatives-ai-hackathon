@@ -4,9 +4,10 @@ import { HeroSection } from './HeroSection'
 import { HowItWorksSection } from './HowItWorksSection'
 import { FeaturesSection } from './FeaturesSection'
 import { ExampleGallerySection } from './ExampleGallerySection'
+import { EducationalOutputsSection } from './EducationalOutputsSection'
 import { ParentSection } from './ParentSection'
 import { Footer } from './Footer'
-import { AuthModal } from '@/components/auth'
+import { UsernameModal } from '@/components/auth'
 
 export function LandingPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -18,13 +19,14 @@ export function LandingPage() {
         <HowItWorksSection />
         <FeaturesSection />
         <ExampleGallerySection />
+        <EducationalOutputsSection />
         <ParentSection />
         <Footer />
       </div>
 
       <AnimatePresence>
         {showAuthModal && (
-          <AuthModal onClose={() => setShowAuthModal(false)} />
+          <UsernameModal onClose={() => setShowAuthModal(false)} />
         )}
       </AnimatePresence>
     </>

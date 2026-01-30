@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ArrowLeft, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -29,9 +29,13 @@ export function GenerationPhase({
   const [sparkyMessage, setSparkyMessage] = useState('')
   const [appliedStyle, setAppliedStyle] = useState<string>('')
   const { generatedImage, isGenerating, error, generate, reset } = useGeminiImage()
+  const hasGeneratedRef = useRef(false)
 
   // Parse and synthesize prompt on mount
   useEffect(() => {
+    // Prevent multiple generation calls
+    if (hasGeneratedRef.current) return
+    
     try {
       const promptState: PromptStateJSON = JSON.parse(promptStateJSON)
       const creativePrompt = synthesizeCreativePrompt(promptState)
@@ -51,13 +55,17 @@ export function GenerationPhase({
       
       setSparkyMessage(`I'm transforming YOUR drawing into ${style} art! This might take a few seconds...`)
       
-      // Pass original image as reference for composition guidance
+      // Mark as generated and trigger generation
+      hasGeneratedRef.current = true
       generate(creativePrompt, originalImage, imageMimeType)
     } catch (err) {
       console.error('Failed to parse prompt state:', err)
       setSparkyMessage("Oops! Something went wrong with your prompt. Let's try again!")
     }
-  }, [promptStateJSON, originalImage, imageMimeType, generate, onUpdatePromptState])
+    // Note: generate and onUpdatePromptState are intentionally excluded to prevent infinite loops.
+    // hasGeneratedRef ensures this effect only runs once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promptStateJSON, originalImage, imageMimeType])
 
   // Update Sparky message based on generation state
   useEffect(() => {
@@ -72,11 +80,13 @@ export function GenerationPhase({
 
   const handleRetry = () => {
     reset()
+    hasGeneratedRef.current = false
     setSparkyMessage(`Let's try transforming your drawing into ${appliedStyle} art again!`)
     
     try {
       const promptState: PromptStateJSON = JSON.parse(promptStateJSON)
       const creativePrompt = synthesizeCreativePrompt(promptState)
+      hasGeneratedRef.current = true
       generate(creativePrompt, originalImage, imageMimeType)
     } catch (err) {
       console.error('Failed to retry:', err)

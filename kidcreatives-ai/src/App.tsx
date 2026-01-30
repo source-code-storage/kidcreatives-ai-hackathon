@@ -258,7 +258,13 @@ function App() {
                   currentPhase={currentPhase}
                   onGalleryClick={() => setShowGallery(true)}
                   onLogout={signOut}
-                  userName={user.email?.split('@')[0]}
+                  userName={
+                    user.user_metadata?.username 
+                    || user.user_metadata?.display_name
+                    || localStorage.getItem('kidcreatives_username')
+                    || user.email?.split('@')[0]
+                    || 'Creator'
+                  }
                 />
               )}
 

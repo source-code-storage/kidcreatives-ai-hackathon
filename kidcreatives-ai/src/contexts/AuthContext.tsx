@@ -7,6 +7,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName: string, ageRange?: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signInWithMagicLink: (email: string) => Promise<void>
+  signInAnonymously: (username: string) => Promise<void>
   signOut: () => Promise<void>
   loading: boolean
   error: string | null
@@ -56,8 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
       if (signUpError) throw signUpError
-      // Profile is automatically created by database trigger
-      // Note: If email confirmation is enabled in Supabase, user will need to confirm email
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign up')
       throw err
@@ -106,9 +105,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const signInAnonymously = async (username: string) => {
+    try {
+      setError(null)
+      setLoading(true)
+
+      // Sign in anonymously with Supabase
+      const { error: anonError } = await supabase.auth.signInAnonymously({
+        options: {
+          data: {
+            username: username,
+            display_name: username
+          }
+        }
+      })
+
+      if (anonError) throw anonError
+
+      // Store username in localStorage for persistence
+      localStorage.setItem('kidcreatives_username', username)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start session')
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const signOut = async () => {
     try {
       setError(null)
+      // Clear localStorage
+      localStorage.removeItem('kidcreatives_username')
       const { error: signOutError } = await supabase.auth.signOut()
       if (signOutError) throw signOutError
     } catch (err) {
@@ -118,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, signUp, signIn, signInWithMagicLink, signOut, loading, error }}>
+    <AuthContext.Provider value={{ user, session, signUp, signIn, signInWithMagicLink, signInAnonymously, signOut, loading, error }}>
       {children}
     </AuthContext.Provider>
   )
