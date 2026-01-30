@@ -41,9 +41,9 @@ Keep your response under 100 words and be specific about what you observe.`
         parts: [
           { text: prompt },
           {
-            inline_data: {
+            inlineData: {
               data: imageBase64,
-              mime_type: mimeType
+              mimeType: mimeType
             }
           }
         ]
