@@ -40,7 +40,7 @@ export function extractStats(
 }
 
 /**
- * Calculate creativity score (1-100) based on answer characteristics
+ * Calculate creativity score (80-100) based on answer characteristics
  * 
  * Scoring breakdown:
  * - Base score: 20 points for completing questions
@@ -48,23 +48,26 @@ export function extractStats(
  * - Diversity score: 30 points max for vocabulary richness (2 points per unique word)
  * - Descriptiveness: 20 points max for multi-word answers (5 points per descriptive answer)
  * 
+ * Raw score (0-100) is then scaled to 80-100 range to ensure
+ * all children receive encouraging scores that protect their confidence.
+ * 
  * Typical ranges:
- * - Basic answers (1-2 words each): 40-60 points
- * - Good answers (3-5 words each): 60-80 points
- * - Excellent answers (5+ words, varied): 80-100 points
+ * - Basic answers (1-2 words each): 84-88 points
+ * - Good answers (3-5 words each): 88-94 points
+ * - Excellent answers (5+ words, varied): 94-100 points
  */
 function calculateCreativityScore(variables: PromptStateJSON['variables']): number {
-  if (variables.length === 0) return 0
+  if (variables.length === 0) return 80 // Minimum score
 
-  let score = 0
+  let rawScore = 0
 
   // Base score: 20 points for completing questions
-  score += 20
+  rawScore += 20
 
   // Length score: 30 points max for detailed answers
   // Rationale: Reward thoughtful, detailed responses (avg > 20 chars = full points)
   const avgLength = variables.reduce((sum, v) => sum + v.answer.length, 0) / variables.length
-  score += Math.min(30, Math.floor(avgLength / 2))
+  rawScore += Math.min(30, Math.floor(avgLength / 2))
 
   // Diversity score: 30 points max for vocabulary richness
   // Rationale: Reward varied word usage (1 point per 2 unique words)
@@ -72,16 +75,18 @@ function calculateCreativityScore(variables: PromptStateJSON['variables']): numb
   const uniqueWords = new Set(
     variables.flatMap(v => v.answer.toLowerCase().split(/\s+/))
   ).size
-  score += Math.min(30, uniqueWords * 2)
+  rawScore += Math.min(30, uniqueWords * 2)
 
   // Descriptiveness score: 20 points max for multi-word answers
   // Rationale: Reward answers with multiple words (5 points per descriptive answer)
   const descriptiveAnswers = variables.filter(v => 
     v.answer.split(/\s+/).length > 2
   ).length
-  score += Math.min(20, descriptiveAnswers * 5)
+  rawScore += Math.min(20, descriptiveAnswers * 5)
 
-  return Math.min(100, Math.max(1, score))
+  // Scale from 0-100 to 80-100 range to protect children's confidence
+  const scaledScore = 80 + (rawScore * 0.2)
+  return Math.min(100, Math.max(80, Math.round(scaledScore)))
 }
 
 /**

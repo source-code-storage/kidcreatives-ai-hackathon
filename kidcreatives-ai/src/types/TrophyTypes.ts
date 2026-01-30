@@ -6,7 +6,7 @@ export interface TrophyStats {
   totalEdits: number
   timeSpent: number // in seconds
   variablesUsed: string[] // List of prompt variables defined
-  creativityScore: number // 1-100 based on answer diversity
+  creativityScore: number // 80-100 based on answer quality (scaled to protect confidence)
   promptLength: number // Length of synthesized prompt
 }
 
