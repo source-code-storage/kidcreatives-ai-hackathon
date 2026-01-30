@@ -7,7 +7,7 @@ interface UseGeminiEditReturn {
   editHistory: EditHistoryEntry[]
   isEditing: boolean
   error: string | null
-  edit: (imageBase64: string, imageMimeType: string, editPrompt: string, sparkyResponse: string) => Promise<void>
+  edit: (imageBase64: string, imageMimeType: string, editPrompt: string, sparkyResponse: string, appliedStyle?: string) => Promise<void>
   reset: () => void
   editCount: number
 }
@@ -22,13 +22,14 @@ export function useGeminiEdit(): UseGeminiEditReturn {
     imageBase64: string,
     imageMimeType: string,
     editPrompt: string,
-    sparkyResponse: string
+    sparkyResponse: string,
+    appliedStyle?: string
   ) => {
     setIsEditing(true)
     setError(null)
 
     try {
-      const result = await editImage(imageBase64, imageMimeType, editPrompt)
+      const result = await editImage(imageBase64, imageMimeType, editPrompt, appliedStyle)
       
       // Create history entry
       const historyEntry: EditHistoryEntry = {

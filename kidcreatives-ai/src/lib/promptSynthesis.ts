@@ -95,60 +95,102 @@ export function extractSubject(intentStatement: string): string {
 }
 
 /**
- * Synthesizes enhancement prompt for image-to-image generation
- * Separates original intent from style instructions for better preservation
+ * Extracts key elements from vision analysis for soul preservation
+ */
+function extractElements(visionAnalysis: string): string[] {
+  const commonObjects = [
+    'robot', 'cat', 'dog', 'monster', 'person', 'child', 'character',
+    'house', 'building', 'car', 'vehicle', 'tree', 'plant',
+    'sun', 'moon', 'star', 'cloud', 'rainbow',
+    'flower', 'mountain', 'ocean', 'water', 'sky',
+    'animal', 'creature', 'bird', 'fish'
+  ]
+  
+  const found = commonObjects.filter(obj => 
+    visionAnalysis.toLowerCase().includes(obj)
+  )
+  
+  return found.length > 0 ? found : ['the drawing elements']
+}
+
+/**
+ * Gets variable value by type
+ */
+function getVariable(variables: PromptVariableEntry[], type: string): string {
+  const variable = variables.find(v => v.variable === type)
+  return variable?.answer || ''
+}
+
+/**
+ * Synthesizes creative transformation prompt for aggressive style application
+ * Preserves soul (characters, layout, intent) while transforming style completely
  * 
  * @param promptState - The complete prompt state from Phase 2
- * @returns Object with originalIntent and styleInstructions separated
+ * @returns Full creative transformation prompt
+ */
+export function synthesizeCreativePrompt(promptState: PromptStateJSON): string {
+  const { intentStatement, visionAnalysis, variables } = promptState
+  
+  // Extract elements from vision analysis
+  const elements = extractElements(visionAnalysis || '')
+  
+  // Get variable values
+  const style = getVariable(variables, 'style')
+  const texture = getVariable(variables, 'texture')
+  const lighting = getVariable(variables, 'lighting')
+  const mood = getVariable(variables, 'mood')
+  const background = getVariable(variables, 'background')
+  
+  // Fallback if no style specified
+  const artStyle = style || 'professional artwork'
+  
+  const prompt = `You are a professional artist transforming a child's drawing into a ${artStyle} masterpiece.
+
+PRESERVE (Soul - Keep These):
+- Characters: ${elements.join(', ')}
+- Intent: ${intentStatement}
+- Composition: Same spatial layout as reference image
+- Emotional tone: ${mood || 'playful and creative'}
+
+TRANSFORM AGGRESSIVELY (Apply Fully):
+- Art Style: ${artStyle} - APPLY THIS STYLE COMPLETELY, not subtle hints
+- Quality: Professional ${artStyle} rendering with polished details
+${texture ? `- Textures: ${texture} - add rich, detailed textures` : ''}
+${lighting ? `- Lighting: ${lighting} - dramatic, cinematic lighting` : ''}
+${mood ? `- Atmosphere: ${mood} feeling` : ''}
+${background ? `- Environment: ${background}` : ''}
+- Depth: Add perspective, layers, and dimensionality
+
+CREATIVE ENHANCEMENTS:
+- Transform sketch lines into ${artStyle} artwork
+- Add expressions, details, and personality to characters
+${background ? `- Enhance environment with ${background} elements` : ''}
+${lighting ? `- Apply ${lighting} to create mood and depth` : ''}
+${texture ? `- Make textures feel ${texture}` : ''}
+- Elevate quality to professional ${artStyle} standards
+
+Reference Image: Use as composition guide (what elements, where they are)
+NOT as pixel template (don't copy the sketch style)
+
+Create a stunning ${artStyle} transformation that makes the child say "WOW!"`
+
+  if (import.meta.env.DEV) {
+    console.log('🎨 Creative Transformation Prompt:', prompt)
+  }
+  
+  return prompt
+}
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use synthesizeCreativePrompt instead
  */
 export function synthesizeEnhancementPrompt(
   promptState: PromptStateJSON
 ): { originalIntent: string; styleInstructions: string } {
-  const { intentStatement, variables } = promptState
-
-  // Original intent (what the child drew)
-  const originalIntent = intentStatement || 'A creative artwork'
-
-  // Style instructions (how to enhance it)
-  const instructions: string[] = []
-
-  // Validate variables
-  if (!Array.isArray(variables) || variables.length === 0) {
-    return { originalIntent, styleInstructions: '' }
-  }
-
-  // Add texture/material
-  const textureVars = variables.filter(v => v.colorCategory === 'variable')
-  if (textureVars.length > 0) {
-    instructions.push(`Texture: ${textureVars.map(v => v.answer).join(', ')}`)
-  }
-
-  // Add lighting
-  const lightingVar = variables.find(v => v.variable === 'lighting')
-  if (lightingVar) {
-    instructions.push(`Lighting: ${lightingVar.answer}`)
-  }
-
-  // Add mood
-  const moodVar = variables.find(v => v.variable === 'mood')
-  if (moodVar) {
-    instructions.push(`Mood: ${moodVar.answer}`)
-  }
-
-  // Add background
-  const backgroundVar = variables.find(v => v.variable === 'background')
-  if (backgroundVar) {
-    instructions.push(`Background: ${backgroundVar.answer}`)
-  }
-
-  // Add style
-  const styleVar = variables.find(v => v.variable === 'style')
-  if (styleVar) {
-    instructions.push(`Art Style: ${styleVar.answer}`)
-  }
-
+  const fullPrompt = synthesizeCreativePrompt(promptState)
   return {
-    originalIntent,
-    styleInstructions: instructions.join('\n')
+    originalIntent: promptState.intentStatement || 'A creative artwork',
+    styleInstructions: fullPrompt
   }
 }

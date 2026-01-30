@@ -26,15 +26,32 @@ function sanitizeEditPrompt(prompt: string): string {
  * @param imageBase64 - Base64 encoded image to edit (without data URL prefix)
  * @param imageMimeType - MIME type of the image (e.g., 'image/png')
  * @param editPrompt - Natural language description of desired changes
+ * @param appliedStyle - Optional style context from Phase 3 for consistency
  * @returns ImageEditResult with edited image
  */
 export async function editImage(
   imageBase64: string,
   imageMimeType: string,
-  editPrompt: string
+  editPrompt: string,
+  appliedStyle?: string
 ): Promise<ImageEditResult> {
   try {
     const sanitizedPrompt = sanitizeEditPrompt(editPrompt)
+    
+    // Build style-aware edit prompt
+    const fullPrompt = appliedStyle
+      ? `Current image style: Professional ${appliedStyle} artwork
+
+Edit request: ${sanitizedPrompt}
+
+Apply this edit while maintaining:
+- Current art style (${appliedStyle})
+- Lighting and atmosphere
+- Quality and polish level
+- Consistency with existing elements
+
+Make the edit look like it was always part of this ${appliedStyle} artwork.`
+      : sanitizedPrompt
 
     // Gemini editing: pass image + text instruction together
     const requestBody = {
@@ -47,7 +64,7 @@ export async function editImage(
             }
           },
           {
-            text: sanitizedPrompt
+            text: fullPrompt
           }
         ]
       }]

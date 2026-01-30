@@ -112,6 +112,15 @@ function App() {
     setCurrentPhase(Phase.PromptBuilder)
   }
 
+  const handleUpdatePromptState = (updates: Record<string, unknown>) => {
+    setPhaseData(prev => ({
+      ...prev,
+      promptStateJSON: prev.promptStateJSON 
+        ? JSON.stringify({ ...JSON.parse(prev.promptStateJSON), ...updates })
+        : null
+    }))
+  }
+
   const handleGenerationComplete = (generatedImageBase64: string, skipRefinement: boolean = false) => {
     setPhaseData(prev => ({
       ...prev,
@@ -167,7 +176,7 @@ function App() {
         )
 
       case Phase.Refinement:
-        if (!phaseData.originalImage || !phaseData.generatedImage) {
+        if (!phaseData.originalImage || !phaseData.generatedImage || !phaseData.promptStateJSON) {
           return null // Will redirect via useEffect
         }
         return (
@@ -175,6 +184,7 @@ function App() {
             generatedImage={phaseData.generatedImage}
             imageMimeType={phaseData.imageMimeType}
             originalImage={phaseData.originalImage}
+            promptStateJSON={phaseData.promptStateJSON}
             onBack={handleRefinementBack}
             onNext={handleRefinementComplete}
           />
@@ -192,6 +202,7 @@ function App() {
             promptStateJSON={phaseData.promptStateJSON}
             onBack={handleGenerationBack}
             onNext={handleGenerationComplete}
+            onUpdatePromptState={handleUpdatePromptState}
           />
         )
 

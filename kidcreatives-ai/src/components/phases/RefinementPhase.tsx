@@ -13,21 +13,36 @@ interface RefinementPhaseProps {
   generatedImage: string // base64 from Phase 3
   imageMimeType: string
   originalImage: string // base64 of original sketch
+  promptStateJSON: string // JSON string to extract applied style
   onBack: () => void
-  onNext: (finalImageBase64: string, editCount: number) => void // Task 13: Add editCount parameter
+  onNext: (finalImageBase64: string, editCount: number) => void
 }
 
 export function RefinementPhase({
   generatedImage,
   imageMimeType,
+  promptStateJSON,
   onBack,
   onNext
 }: RefinementPhaseProps) {
   const [editPrompt, setEditPrompt] = useState('')
   const [sparkyMessage, setSparkyMessage] = useState('')
   const [beforeImage, setBeforeImage] = useState(generatedImage)
+  const [appliedStyle, setAppliedStyle] = useState<string>('')
   
   const { currentImage, editHistory, isEditing, error, edit, editCount } = useGeminiEdit()
+
+  // Extract applied style from prompt state
+  useEffect(() => {
+    try {
+      const promptState = JSON.parse(promptStateJSON)
+      const style = promptState.appliedStyle || 'professional artwork'
+      setAppliedStyle(style)
+    } catch (err) {
+      console.error('Failed to parse prompt state:', err)
+      setAppliedStyle('professional artwork')
+    }
+  }, [promptStateJSON])
 
   // Initialize Sparky message
   useEffect(() => {
@@ -78,7 +93,7 @@ export function RefinementPhase({
     // Update before image for comparison
     setBeforeImage(imageToEdit)
 
-    await edit(imageToEdit, imageMimeType, editPrompt, sparkyResponse)
+    await edit(imageToEdit, imageMimeType, editPrompt, sparkyResponse, appliedStyle)
     setEditPrompt('') // Clear input after submission
   }
 

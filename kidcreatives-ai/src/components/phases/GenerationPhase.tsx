@@ -4,7 +4,7 @@ import { ArrowRight, ArrowLeft, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sparky } from '@/components/ui/Sparky'
 import { useGeminiImage } from '@/hooks/useGeminiImage'
-import { synthesizeEnhancementPrompt } from '@/lib/promptSynthesis'
+import { synthesizeCreativePrompt } from '@/lib/promptSynthesis'
 import { imageToDataURL } from '@/lib/gemini/imageClient'
 import type { PromptStateJSON } from '@/types/PromptState'
 
@@ -14,6 +14,7 @@ interface GenerationPhaseProps {
   promptStateJSON: string // JSON string from Phase 2
   onBack: () => void
   onNext: (generatedImageBase64: string, skipRefinement?: boolean) => void
+  onUpdatePromptState?: (updates: Partial<PromptStateJSON>) => void
 }
 
 export function GenerationPhase({
@@ -21,53 +22,62 @@ export function GenerationPhase({
   imageMimeType,
   promptStateJSON,
   onBack,
-  onNext
+  onNext,
+  onUpdatePromptState
 }: GenerationPhaseProps) {
   const [synthesizedPrompt, setSynthesizedPrompt] = useState<string>('')
   const [sparkyMessage, setSparkyMessage] = useState('')
+  const [appliedStyle, setAppliedStyle] = useState<string>('')
   const { generatedImage, isGenerating, error, generate, reset } = useGeminiImage()
 
   // Parse and synthesize prompt on mount
   useEffect(() => {
     try {
       const promptState: PromptStateJSON = JSON.parse(promptStateJSON)
-      const { originalIntent, styleInstructions } = synthesizeEnhancementPrompt(promptState)
+      const creativePrompt = synthesizeCreativePrompt(promptState)
+      
+      // Extract and store applied style
+      const styleVar = promptState.variables.find(v => v.variable === 'style')
+      const style = styleVar?.answer || 'professional artwork'
+      setAppliedStyle(style)
+      
+      // Update prompt state with applied style
+      if (onUpdatePromptState) {
+        onUpdatePromptState({ appliedStyle: style })
+      }
       
       // Store for display
-      setSynthesizedPrompt(styleInstructions 
-        ? `${originalIntent}\n\n${styleInstructions}`
-        : originalIntent
-      )
+      setSynthesizedPrompt(creativePrompt)
       
-      setSparkyMessage("I'm enhancing YOUR drawing with AI magic! This might take a few seconds...")
+      setSparkyMessage(`I'm transforming YOUR drawing into ${style} art! This might take a few seconds...`)
       
-      // Pass original image as reference for image-to-image generation
-      generate(originalIntent, styleInstructions, originalImage, imageMimeType)
+      // Pass original image as reference for composition guidance
+      generate(creativePrompt, originalImage, imageMimeType)
     } catch (err) {
       console.error('Failed to parse prompt state:', err)
       setSparkyMessage("Oops! Something went wrong with your prompt. Let's try again!")
     }
-  }, [promptStateJSON, originalImage, imageMimeType, generate])
+  }, [promptStateJSON, originalImage, imageMimeType, generate, onUpdatePromptState])
 
   // Update Sparky message based on generation state
   useEffect(() => {
     if (isGenerating) {
-      setSparkyMessage("I'm enhancing YOUR drawing with AI magic! Watch closely...")
+      setSparkyMessage(`I'm transforming YOUR drawing into ${appliedStyle} art! Watch the magic happen...`)
     } else if (error) {
       setSparkyMessage("Hmm, something went wrong. But don't worry, we can try again!")
     } else if (generatedImage) {
-      setSparkyMessage("Ta-da! It's YOUR drawing, but even more amazing! Do you recognize your creation? 🎨")
+      setSparkyMessage("Ta-da! It's YOUR drawing transformed! Do you see how your creation came to life? 🎨✨")
     }
-  }, [isGenerating, error, generatedImage])
+  }, [isGenerating, error, generatedImage, appliedStyle])
 
   const handleRetry = () => {
     reset()
-    setSparkyMessage("Let's try enhancing your drawing again!")
+    setSparkyMessage(`Let's try transforming your drawing into ${appliedStyle} art again!`)
     
     try {
       const promptState: PromptStateJSON = JSON.parse(promptStateJSON)
-      const { originalIntent, styleInstructions } = synthesizeEnhancementPrompt(promptState)
-      generate(originalIntent, styleInstructions, originalImage, imageMimeType)
+      const creativePrompt = synthesizeCreativePrompt(promptState)
+      generate(creativePrompt, originalImage, imageMimeType)
     } catch (err) {
       console.error('Failed to retry:', err)
     }

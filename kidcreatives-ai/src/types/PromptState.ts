@@ -27,6 +27,7 @@ export interface PromptStateJSON {
   intentStatement: string
   visionAnalysis: string
   variables: PromptVariableEntry[]
+  appliedStyle?: string // Track style from Phase 3 for refinement consistency
   startedAt: number
   completedAt: number | null
   currentQuestionIndex: number
