@@ -16,15 +16,27 @@ export function Footer() {
 
         {/* Links */}
         <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm">
-          <a href="#" className="text-gray-400 hover:text-white transition-colors">
-            About
-          </a>
-          <a href="#" className="text-gray-400 hover:text-white transition-colors">
-            Privacy Policy
-          </a>
-          <a href="#" className="text-gray-400 hover:text-white transition-colors">
-            Contact
-          </a>
+          <button 
+            onClick={(e) => e.preventDefault()} 
+            className="text-gray-400 hover:text-gray-300 transition-colors cursor-not-allowed opacity-50"
+            disabled
+          >
+            About (Coming Soon)
+          </button>
+          <button 
+            onClick={(e) => e.preventDefault()} 
+            className="text-gray-400 hover:text-gray-300 transition-colors cursor-not-allowed opacity-50"
+            disabled
+          >
+            Privacy Policy (Coming Soon)
+          </button>
+          <button 
+            onClick={(e) => e.preventDefault()} 
+            className="text-gray-400 hover:text-gray-300 transition-colors cursor-not-allowed opacity-50"
+            disabled
+          >
+            Contact (Coming Soon)
+          </button>
         </div>
 
         {/* Copyright */}

@@ -48,15 +48,8 @@ function App() {
   // Show auth modal when accessing /app without authentication
   useEffect(() => {
     const isAppRoute = location.pathname === '/app'
-    const timer = setTimeout(() => {
-      if (!authLoading && !user && isAppRoute) {
-        setShowAuthModal(true)
-      } else if (user || !isAppRoute) {
-        setShowAuthModal(false)
-      }
-    }, 100)
-    
-    return () => clearTimeout(timer)
+    const shouldShowModal = !authLoading && !user && isAppRoute
+    setShowAuthModal(shouldShowModal)
   }, [user, authLoading, location.pathname])
 
   // Redirect to Handshake if Phase 2 is missing required data

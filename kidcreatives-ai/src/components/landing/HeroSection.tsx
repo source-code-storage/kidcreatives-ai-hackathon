@@ -1,9 +1,21 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, Brain, Award } from 'lucide-react'
+import { useState } from 'react'
 
 export function HeroSection() {
   const navigate = useNavigate()
+  const [navError, setNavError] = useState<string | null>(null)
+
+  const handleStartCreating = () => {
+    try {
+      navigate('/app')
+      setNavError(null)
+    } catch (error) {
+      console.error('Navigation failed:', error)
+      setNavError('Unable to navigate. Please try again.')
+    }
+  }
 
   return (
     <section className="min-h-screen flex items-center justify-center px-4 py-20 bg-gradient-to-br from-subject-blue via-variable-purple to-context-orange">
@@ -16,7 +28,7 @@ export function HeroSection() {
         {/* Logo */}
         <motion.img
           src="/logo/logo.png"
-          alt="KidCreatives AI"
+          alt="KidCreatives AI - Teaching AI literacy through creative expression"
           className="h-16 md:h-20 w-auto mx-auto mb-8 drop-shadow-2xl"
           animate={{ y: [0, -10, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -40,13 +52,18 @@ export function HeroSection() {
 
           {/* CTA Button */}
           <motion.button
-            onClick={() => navigate('/app')}
+            onClick={handleStartCreating}
             className="bg-gradient-to-r from-action-green to-action-green-600 hover:from-action-green-600 hover:to-action-green-700 text-white font-semibold text-lg px-10 py-4 rounded-xl shadow-lg transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2, boxShadow: "0 20px 40px rgba(39, 174, 96, 0.3)" }}
             whileTap={{ scale: 0.95 }}
           >
             Start Creating
           </motion.button>
+
+          {/* Error Message */}
+          {navError && (
+            <p className="mt-4 text-red-600 text-sm">{navError}</p>
+          )}
 
           {/* Trust Badges */}
           <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm md:text-base">

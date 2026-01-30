@@ -6,35 +6,35 @@ const steps = [
     icon: Upload,
     title: 'Upload Your Drawing',
     description: 'Start with YOUR art - a sketch, doodle, or complete drawing',
-    color: 'bg-subject-blue',
+    bgColor: 'bg-subject-blue',
     textColor: 'text-subject-blue'
   },
   {
     icon: MessageCircle,
     title: 'Teach the AI',
     description: 'Answer fun questions to help AI understand your creative vision',
-    color: 'bg-variable-purple',
+    bgColor: 'bg-variable-purple',
     textColor: 'text-variable-purple'
   },
   {
     icon: Sparkles,
     title: 'Watch AI Add Magic',
     description: 'See AI enhance your art while keeping YOUR original ideas',
-    color: 'bg-context-orange',
+    bgColor: 'bg-context-orange',
     textColor: 'text-context-orange'
   },
   {
     icon: Paintbrush,
     title: 'Make It Perfect',
     description: "You're in control - add finishing touches exactly how you want",
-    color: 'bg-action-green',
+    bgColor: 'bg-action-green',
     textColor: 'text-action-green'
   },
   {
     icon: Trophy,
     title: 'Show Off Your Skills',
     description: 'Get a certificate proving you can work with AI like a pro!',
-    color: 'bg-subject-blue',
+    bgColor: 'bg-subject-blue',
     textColor: 'text-subject-blue'
   }
 ]
@@ -65,7 +65,7 @@ export function HowItWorksSection() {
               className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100"
             >
               {/* Step Number */}
-              <div className={`w-12 h-12 rounded-full ${step.color} flex items-center justify-center text-white font-bold text-xl mb-4`}>
+              <div className={`w-12 h-12 rounded-full ${step.bgColor} flex items-center justify-center text-white font-bold text-xl mb-4`}>
                 {index + 1}
               </div>
 
