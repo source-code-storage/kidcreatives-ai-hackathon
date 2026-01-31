@@ -31,7 +31,9 @@ export async function saveCreation(
     if (creation.promptCardPNG) {
       try {
         promptCardUrl = await uploadPromptCard(userId, creationId, creation.promptCardPNG)
-        console.log('Prompt card uploaded:', promptCardUrl)
+        if (import.meta.env.DEV) {
+          console.log('Prompt card uploaded:', promptCardUrl)
+        }
       } catch (error) {
         console.error('Failed to upload prompt card:', error)
         // Don't fail the entire save if prompt card upload fails

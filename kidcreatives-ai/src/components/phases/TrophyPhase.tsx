@@ -208,7 +208,9 @@ export function TrophyPhase({
             backgroundColor: '#1a1a2e',
             scale: 2
           })
-          console.log('Prompt card captured successfully')
+          if (import.meta.env.DEV) {
+            console.log('Prompt card captured successfully')
+          }
         } catch (captureError) {
           console.error('Failed to capture prompt card:', captureError)
           // Continue without prompt card if capture fails
